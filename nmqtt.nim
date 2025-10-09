@@ -36,7 +36,7 @@ type
     s: AsyncSocket
     ssl: SslContext
     msgIdSeq: MsgId
-    workQueue: Table[MsgId, Work]
+    workQueue: OrderedTable[MsgId, Work]
     pubCallbacks: Table[string, PubCallback]
     inWork: bool
     keepAlive: uint16
