@@ -369,10 +369,12 @@ proc send(ctx: MqttCtx, pkt: Pkt): Future[bool] {.async.} =
       break
 
   ctx.dmp "tx> " & $pkt
-  await ctx.s.send(hdr[0].unsafeAddr, hdr.len)
+
+  if hdr.len > 0:
+    await ctx.s.send(addr hdr[0], hdr.len)
 
   if pkt.data.len > 0:
-    await ctx.s.send(pkt.data[0].unsafeAddr, pkt.data.len)
+    await ctx.s.send(addr pkt.data[0], pkt.data.len)
 
   return true
 
@@ -1090,15 +1092,15 @@ proc runConnect(ctx: MqttCtx) {.async.} =
     if ctx.state == Disabled:
       break
     elif ctx.state in [Disconnected, Error]:
-      await ctx.connectBroker()
-      # try:
-      #   await ctx.connectBroker()
-      # except OSError as e:
-      #   if ctx.verbosity >= 1 or not ctx.beenConnected:
-      #     ctx.dbg "Error connecting to " & ctx.host
-      #   if ctx.verbosity >= 2:
-      #     echo e.msg
-      #   ctx.state = Error
+      # await ctx.connectBroker()
+      try:
+        await ctx.connectBroker()
+      except OSError as e:
+        if ctx.verbosity >= 1 or not ctx.beenConnected:
+          ctx.dbg "Error connecting to " & ctx.host
+        if ctx.verbosity >= 2:
+          echo e.msg
+        ctx.state = Error
 
       # If the client has been disconnect, it is necessary to tell the broker,
       # that we still want to be Subscribed. PubCallbacks still holds the
